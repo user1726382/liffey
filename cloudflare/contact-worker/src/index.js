@@ -17,7 +17,7 @@ export default {
   if(name.length<2||name.length>120||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<10||message.length>5000||!Object.hasOwn(topics,topic)||data.consent!==true) return reply(400,{error:"invalid_fields"});
   const ip=request.headers.get("CF-Connecting-IP")||"";
   const challenge=await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({secret:env.TURNSTILE_SECRET,response:String(data.token||""),remoteip:ip})});
-  const result=await challenge.json();if(!result.success || (result.hostname&&!["www.liffey-consulting.com","liffey-consulting.com"].includes(result.hostname)))return reply(403,{error:"verification_failed"});
+  if(!challenge.ok)return reply(403,{error:"verification_failed"});const result=await challenge.json();if(!result.success || !["www.liffey-consulting.com","liffey-consulting.com"].includes(result.hostname) || result.action!=="contact")return reply(403,{error:"verification_failed"});
   const send=async(to,subject,text,replyTo)=>fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+env.RESEND_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({from:env.FROM_EMAIL,to:[to],subject,text,...(replyTo?{reply_to:replyTo}:{})})});
   const safe=s=>s.replace(/[\r\n]/g," ").slice(0,200);
   const inbox=await send(topics[topic],"Website enquiry: "+safe(topic),`Topic: ${topic}\nName: ${name}\nEmail: ${email}\nLanguage: ${locale}\n\n${message}`,email);
