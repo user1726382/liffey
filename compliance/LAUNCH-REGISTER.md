@@ -1,9 +1,9 @@
-# The Link — Regulatory launch register
+# Liffey Consulting — Regulatory launch register
 Status: DRAFT. No item is verified until supporting evidence is recorded.
 
 | ID | Requirement | Jurisdiction | Launch gate | Status |
 |---|---|---|---|---|
-| 01 | Verify legal entity, trading name, trademark, address and representatives | DE/IE/EU | Website | BLOCKED |
+| 01 | GbR established in Frankfurt (owner-confirmed); verify trading name, full address, representatives, register and trademark | DE/IE/EU | Website | PARTIAL — NOT APPROVED |
 | 02 | Register business and obtain tax/VAT registrations where applicable | DE/IE | Services | OPEN |
 | 03 | Assess Irish employment-agency licensing and secure authorization if required | IE | Recruitment | BLOCKED |
 | 04 | Assess German private placement, AÜG employee leasing and AVGS scope | DE | Recruitment | BLOCKED |
@@ -26,3 +26,12 @@ Status: DRAFT. No item is verified until supporting evidence is recorded.
 **Evidence:** Record document owner, approval date, link to certificate/contract/test, reviewer and renewal date. Do not mark a draft policy as an implemented control.
 
 **Launch gates:** (A) public informational site; (B) B2B consulting/marketing; (C) candidate data/recruitment. Gate C is not met by completing Gate A or B.
+
+## Draft controls added (not implemented)
+- [Privacy operations](PRIVACY-OPERATIONS.md)
+- [Security standard](SECURITY-STANDARD.md)
+- [B2B terms skeleton](B2B-ENGAGEMENT-TERMS-DRAFT.md)
+- [Recruitment and outreach gates](MARKETING-RECRUITMENT-GATES.md)
+- [Website remediation specification](WEBSITE-REMEDIATION-SPEC.md)
+
+No launch gate is cleared by the existence of a draft. Partner identity and full service address remain deferred at owner request.
