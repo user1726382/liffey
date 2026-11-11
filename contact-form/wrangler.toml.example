@@ -1,0 +1,9 @@
+name = "liffey-contact"
+main = "worker.js"
+compatibility_date = "2026-11-11"
+# Set to the exact deployed website origin, e.g. https://www.liffey-consulting.com
+[vars]
+ALLOWED_ORIGIN = "https://www.liffey-consulting.com"
+CONTACT_TO = "info@liffey-consulting.com"
+MAIL_FROM = "Liffey Consulting <contact@liffey-consulting.com>"
+# Store RESEND_API_KEY and TURNSTILE_SECRET_KEY as encrypted Worker secrets, NEVER here.
