@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://user1726382.github.io/website/sitemap.xml
+Sitemap: https://www.liffey-consulting.com/sitemap.xml
