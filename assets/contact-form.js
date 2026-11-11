@@ -23,6 +23,6 @@
    if(!resp.ok||!result.ok)throw new Error("submission_failed");
    form.reset();say("Thank you. Your enquiry was submitted.","Vielen Dank. Ihre Anfrage wurde übermittelt.");
   }catch{say("Delivery failed. Please email info@liffey-consulting.com.","Versand fehlgeschlagen. Bitte schreiben Sie an info@liffey-consulting.com.")}
-  finally{window.turnstile?.reset();button.disabled=false}
+  finally{window.turnstile?.reset();button.disabled=true}
  });
 })();
