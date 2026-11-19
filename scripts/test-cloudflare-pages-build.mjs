@@ -3,7 +3,7 @@ import { readdir, stat, readFile } from "node:fs/promises";
 import { join, extname } from "node:path";
 const output=join(process.cwd(),"dist");
 async function exists(p){try{await stat(join(output,p));return true}catch{return false}}
-for(const path of ["index.html","404.html","robots.txt","sitemap.xml","legal/de/impressum.html","legal/en/privacy.html","assets/contact-form.js","roles/roles.json","_headers",".well-known/security.txt"]){
+for(const path of ["favicon.png","index.html","404.html","robots.txt","sitemap.xml","legal/de/impressum.html","legal/en/privacy.html","assets/contact-form.js","roles/roles.json","_headers",".well-known/security.txt"]){
  assert.ok(await exists(path),"Required public file missing: "+path);
 }
 for(const path of [".github","contact-worker","scripts","LAUNCH_CHECKLIST.md","roles/README.md","CNAME","compliance"]){
@@ -34,4 +34,10 @@ for(const file of ["robots.txt","sitemap.xml"]){
  assert.ok(content.includes("https://www.liffey-consulting.com"),"Canonical domain missing in "+file);
  assert.ok(!content.includes("user1726382.github.io/website"),"Legacy domain leaked in "+file);
 }
+const favicon=await readFile(join(output,"favicon.png"));
+assert.deepEqual([...favicon.subarray(0,8)],[137,80,78,71,13,10,26,10],"favicon.png must be a real PNG");
+assert.equal(favicon.readUInt32BE(16),96,"favicon.png must be 96px wide");
+assert.equal(favicon.readUInt32BE(20),96,"favicon.png must be 96px high");
+const homepage=await readFile(join(output,"index.html"),"utf8");
+assert.ok(homepage.includes('<link rel="icon" type="image/png" sizes="96x96" href="/favicon.png">'),"Homepage must advertise favicon.png");
 console.log("Validated "+count+" public output files, security headers, disclosure metadata and canonical SEO URLs; internal repository files excluded.");
