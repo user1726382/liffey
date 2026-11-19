@@ -3,7 +3,7 @@
 
 ## Gate A — Verify company facts (founder sign-off)
 - [ ] Correct legal identity: `Liffey GbR`; confirm partners and who may represent the GbR.
-- [ ] **Exact full serviceable business address** (street, building number, postcode, city, country). Prior conversation confirms Frankfurt am Main only; do not publish an inferred private address.
+- [x] **Business address supplied by owner (19 November 2026):** Gustav-Adolf-Straße 13, 63069 Offenbach am Main, Germany. Verify this is a serviceable business address before publication.
 - [ ] Confirm whether registered as an `eGbR`; publish relevant register and number only if applicable.
 - [ ] Verify business contact email, phone and mailbox monitoring. Include tax/VAT identifiers only when actually issued and legally required.
 - [ ] Verify `legal/en/imprint.html` and `legal/de/impressum.html` are consistent and reachable from every page.
