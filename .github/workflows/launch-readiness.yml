@@ -1,0 +1,14 @@
+name: Launch readiness static checks
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-launch-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run offline release-gate checks
+        run: python3 scripts/launch_readiness_check.py
