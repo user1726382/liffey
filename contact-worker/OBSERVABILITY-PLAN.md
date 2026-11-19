@@ -22,3 +22,9 @@
 
 ## Integration warning
 F-008 and F-011 both edit `contact-worker/worker.js` in separate draft branches. Reconcile their changes and rerun the F-008 Worker unit tests before any deployment; do not merge either in isolation without verifying the final combined Worker.
+
+## Deployment evidence — 19 November 2026
+- Cloudflare Worker version `f5717f49-0295-47c7-aa33-e8956ead03dd` active with `observability.enabled=true`, persisted logs, `invocation_logs=false`, query-string redaction, and no traces.
+- Structured application errors log controlled `event`, `status`, `code` only; not enquiry content, tokens or IPs.
+- Cloudflare notification policy **Liffey Worker real-time issues** enabled, routed to `security@liffey-consulting.com`. Cloudflare API test returned success; human confirmation of delivery and escalation is outstanding.
+- Provider-controlled log retention, alert effectiveness, and live error-rate thresholds remain unverified; do not assert a 30-day Cloudflare retention period without evidence.

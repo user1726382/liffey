@@ -26,3 +26,11 @@ namespace_id = "1001"
 ```
 
 Cloudflare documents this binding at https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/ . Confirm account plan support and test in staging. The live Worker currently lacks `CONTACT_RATE_LIMITER`; deploying this code before configuring the binding will cause valid form submissions to return HTTP 503. F-011 also edits the Worker; reconcile and rerun tests before deployment.
+
+## Deployment evidence — 19 November 2026
+- GitHub source: merged PR #17 (integrated Worker hardening).
+- Cloudflare Worker: `liffey-contact-form`, new version `ac740f6a-3a43-47aa-9f95-2f7e3bf04d96` deployed 100%, then settings update created version `f5717f49-0295-47c7-aa33-e8956ead03dd` deployed 100%.
+- Verified `CONTACT_RATE_LIMITER` binding, namespace `260119`, approximate **5 requests / 60 seconds** per key per Cloudflare location.
+- Existing `FORM_ENABLED`, `FROM_EMAIL`, `RESEND_API_KEY` and `TURNSTILE_SECRET` bindings preserved by inheritance. No secrets copied into Git.
+- Previous known-good deployed version for rollback: `28dcd7ef-6f85-4ba5-a4ee-1e67201d0cc8`.
+- **Still open:** external end-to-end form submission and 429 regression verification; deployment configuration alone does not prove delivery.
