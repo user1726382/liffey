@@ -1,0 +1,30 @@
+name: Staging Cloudflare Pages build
+on:
+  push:
+    branches:
+      - staging/cloudflare-pages-preview-20261119
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+      - name: Build and validate public-only staging output
+        env:
+          LIFFEY_PAGES_STAGING: "1"
+        run: |
+          node scripts/build-cloudflare-pages.mjs
+          node scripts/test-cloudflare-pages-build.mjs
+      - name: Ensure staging cannot send contact enquiries
+        run: |
+          ! grep -R "liffey-contact-form.leoedwalshe.workers.dev" dist/contact dist/de/kontakt
+          grep -q "X-Robots-Tag: noindex, nofollow" dist/_headers
+          test ! -e dist/contact-worker
