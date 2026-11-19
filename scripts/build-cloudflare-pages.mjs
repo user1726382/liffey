@@ -1,6 +1,6 @@
 // Build an explicit public-only static output for Cloudflare Pages.
 // Never point Pages at the repository root: it contains internal docs and Worker source.
-import { copyFile, mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rm, writeFile, readFile } from "node:fs/promises";
 import { extname, join, relative, dirname } from "node:path";
 
 const root=process.cwd(), output=join(root,"dist");
@@ -34,5 +34,25 @@ await writeFile(join(output,"_headers"),`/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'
 `);
+
+// Publish security disclosure metadata only in the public build, never secrets.
+await mkdir(join(output,".well-known"),{recursive:true});
+await writeFile(join(output,".well-known","security.txt"),`Contact: mailto:security@liffey-consulting.com
+Expires: 2027-05-19T23:59:00Z
+Canonical: https://www.liffey-consulting.com/.well-known/security.txt
+Preferred-Languages: en, de
+`);
+
+// The source still contains the old GitHub Pages preview domain.
+// Rewrite only these exact historic absolute URLs in the built sitemap/robots.
+const oldBase="https://user1726382.github.io/website";
+const newBase="https://www.liffey-consulting.com";
+for(const name of ["robots.txt","sitemap.xml"]){
+ const file=join(output,name),before=await readFile(file,"utf8");
+ if(!before.includes(oldBase))throw new Error(name+": expected legacy hostname not found; review before changing migration transform");
+ await writeFile(file,before.replaceAll(oldBase,newBase));
+}
+
 console.log("Cloudflare Pages build: copied "+count+" public files into "+relative(root,output));
