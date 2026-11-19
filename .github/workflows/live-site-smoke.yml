@@ -1,0 +1,22 @@
+name: Live website smoke checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/live-site-smoke.mjs
+      - .github/workflows/live-site-smoke.yml
+  schedule:
+    - cron: '37 7 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Check public Cloudflare Pages website without submitting personal data
+        run: node scripts/live-site-smoke.mjs
