@@ -35,6 +35,8 @@ for(const file of ["robots.txt","sitemap.xml"]){
  assert.ok(!content.includes("user1726382.github.io/website"),"Legacy domain leaked in "+file);
 }
 if(process.env.LIFFEY_PAGES_STAGING==="1"){
+ const homepage=await readFile(join(output,"index.html"),"utf8");
+ assert.ok(homepage.includes('<meta name="robots" content="noindex,nofollow">'),"Staging homepage must be noindex");
  assert.match(headers,/X-Robots-Tag: noindex, nofollow/);
  const robots=await readFile(join(output,"robots.txt"),"utf8");
  assert.equal(robots,"User-agent: *\nDisallow: /\n");
