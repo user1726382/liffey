@@ -1,0 +1,38 @@
+name: Static site checks
+on:
+  pull_request:
+    branches: [gh-pages]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate HTML and JS syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Parser(HTMLParser): pass
+          files=list(Path('.').rglob('*.html'))
+          assert files, 'No HTML files found'
+          for p in files:
+              Parser().feed(p.read_text(encoding='utf-8'))
+          print(f'Parsed {len(files)} HTML files')
+          PY
+          find . -type f -name '*.js' -not -path './.git/*' -print0 | xargs -0 -r -n1 node --check
+      - name: Detect obvious placeholder secrets and conflict markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE '^(<<<<<<< |=======|>>>>>>> )' -- ':!*.md'; then echo 'Merge conflict marker detected'; exit 1; fi
+          if git grep -nEi '(AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' -- ':!*.md'; then echo 'Potential credential detected'; exit 1; fi
+          test -f legal/en/privacy.html && test -f legal/de/datenschutz.html
+          test -f legal/en/imprint.html && test -f legal/de/impressum.html
