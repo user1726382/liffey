@@ -37,6 +37,16 @@ jobs:
           else
             echo "Worker tests not yet merged; tracked in F-008."
           fi
+      - name: Verify public-only Pages build when available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -f scripts/build-cloudflare-pages.mjs && test -f scripts/test-cloudflare-pages-build.mjs; then
+            node scripts/build-cloudflare-pages.mjs
+            node scripts/test-cloudflare-pages-build.mjs
+          else
+            echo "Pages migration build not yet merged; tracked in F-013."
+          fi
       - name: Detect obvious placeholder secrets and conflict markers
         shell: bash
         run: |
