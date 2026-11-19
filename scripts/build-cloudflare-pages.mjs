@@ -51,8 +51,8 @@ const oldBase="https://user1726382.github.io/website";
 const newBase="https://www.liffey-consulting.com";
 for(const name of ["robots.txt","sitemap.xml"]){
  const file=join(output,name),before=await readFile(file,"utf8");
- if(!before.includes(oldBase))throw new Error(name+": expected legacy hostname not found; review before changing migration transform");
- await writeFile(file,before.replaceAll(oldBase,newBase));
+ if(before.includes(oldBase))await writeFile(file,before.replaceAll(oldBase,newBase));
+ else if(!before.includes(newBase))throw new Error(name+": expected canonical hostname missing; review sitemap and robots");
 }
 
 console.log("Cloudflare Pages build: copied "+count+" public files into "+relative(root,output));
