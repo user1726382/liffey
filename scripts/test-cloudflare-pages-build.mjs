@@ -34,4 +34,21 @@ for(const file of ["robots.txt","sitemap.xml"]){
  assert.ok(content.includes("https://www.liffey-consulting.com"),"Canonical domain missing in "+file);
  assert.ok(!content.includes("user1726382.github.io/website"),"Legacy domain leaked in "+file);
 }
+if(process.env.LIFFEY_PAGES_STAGING==="1"){
+ assert.match(headers,/X-Robots-Tag: noindex, nofollow/);
+ const robots=await readFile(join(output,"robots.txt"),"utf8");
+ assert.equal(robots,"User-agent: *\nDisallow: /\n");
+ for(const path of ["contact/index.html","de/kontakt/index.html"]){
+  const html=await readFile(join(output,path),"utf8");
+  assert.match(html,/<form id="liffey-enquiry" inert aria-disabled="true"/);
+  assert.ok(!html.includes("liffey-contact-form.leoedwalshe.workers.dev"),"Production Worker URL exposed in staging: "+path);
+  assert.match(html,/siteKey:""/);
+  assert.match(html,/form is disabled|Formular ist deaktiviert/);
+ }
+ for(const path of ["legal/en/imprint.html","legal/de/impressum.html","legal/en/privacy.html","legal/de/datenschutz.html"]){
+  const html=await readFile(join(output,path),"utf8");
+  assert.ok(html.includes("Gustav-Adolf-Straße 13, 63069 Offenbach am Main"),"Confirmed address absent: "+path);
+ }
+}
+
 console.log("Validated "+count+" public output files, security headers, disclosure metadata and canonical SEO URLs; internal repository files excluded.");
