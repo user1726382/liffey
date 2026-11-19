@@ -1,25 +1,28 @@
-# F-013 — Cloudflare Pages migration (not deployed)
+# Cloudflare Pages production migration — 19 November 2026
 
-This branch prepares an allowlisted static build. It **does not** create a Cloudflare Pages project, change DNS, modify GitHub Pages or deploy anything.
+## Project and source
+- Production Cloudflare Pages project: `liffey-consulting` (`liffey-consulting.pages.dev`).
+- Separate staging project: `liffey-consulting-staging`, using a staging-only build that disables forms and prevents indexing.
+- GitHub repository: `user1726382/liffey`; production branch: `gh-pages`.
+- Build command: `node scripts/build-cloudflare-pages.mjs && node scripts/test-cloudflare-pages-build.mjs`.
+- Output: `dist` only, not repository root. The allowlist excludes internal files, secrets, Worker source and operational documents.
+- Canonical domain: `www.liffey-consulting.com`; apex redirects to canonical as appropriate.
+- GitHub Pages must remain configured as rollback during validation.
 
-## Build settings when migration is explicitly approved
-- Repository: `user1726382/liffey`
-- Production branch: `gh-pages`
-- Framework preset: None
-- Build command: `node scripts/build-cloudflare-pages.mjs`
-- Build output directory: `dist`
-- Root directory: repository root
-- Do not set output directory to `/`, `.` or the repository root.
-- Initially use a separate preview project or disable automatic production deployments until testing is complete.
+## Pre-cutover checks
+1. Confirm latest GitHub Actions validation and Cloudflare production Pages build pass on the same `gh-pages` commit.
+2. Verify production `pages.dev` HTML, favicon, robots, sitemap, legal notices, headers, EN/DE navigation, mobile pages, and that contact form has a valid configured endpoint and site key.
+3. Check the contact-form Worker still accepts the existing apex and www origins; test Turnstile and Resend via the **custom domain** after cutover.
+4. Snapshot current DNS: four GitHub Pages apex A records and DNS-only `www` CNAME; leave MX, SPF, DKIM, DMARC, Resend, and Microsoft verification records untouched.
+5. Add custom domains through the Cloudflare Pages **custom domain API**, not by merely pointing DNS CNAME at pages.dev. Check both become active and certificates provisioned.
+6. Verify proxied DNS for apex and www, HTTPS, correct canonical URL and redirects, favicon, robots/sitemap, Worker form, and mail delivery.
+7. If Pages fails, roll back only website A/CNAME records to their recorded GitHub Pages targets and validate again. Do not change mail DNS or nameservers.
 
-The build copies public website content and excludes `.github`, `contact-worker`, internal Markdown, `LAUNCH_CHECKLIST.md`, `scripts` and the GitHub Pages `CNAME`. Public directories remain allowlisted; review newly added assets before release. It writes baseline `_headers` security headers, deliberately **without CSP** until Turnstile and external dependencies are inventoried and tested.
+## After stable cutover
+- Confirm Cloudflare proxy/WAF protection on both website hostnames.
+- Review and, if appropriate, disable GitHub Pages publishing before changing repository visibility; private repositories are supported by Cloudflare Pages Git integration.
+- Keep the GitHub repository and Cloudflare GitHub App connected; validate automatic deployment on a subsequent approved change.
+- DNSSEC is separate and currently pending automatic DS publication by Cloudflare Registrar; do not manually add DS records.
 
-## Validation and cutover
-1. Confirm the build-check workflow passes and inspect `dist` for secrets, PII, internal documentation and broken links.
-2. Connect the GitHub repository to Cloudflare Pages, or upload the generated `dist` artifact for a staging preview. The Cloudflare account currently has no Pages project.
-3. Test EN/DE pages, contact form Worker CORS origins, Turnstile, Resend routing, robots/sitemap, HTTP status codes, canonical URL, headers and cache behavior at the preview URL.
-4. Before adding the production domain, decide whether to keep `www.liffey-consulting.com` canonical. The existing apex A records and `www` CNAME point to GitHub Pages; switching them is a production DNS change.
-5. Verify HTTPS certificates, redirects, mail-related DNS unaffected, and a rollback plan. Only then schedule a DNS cutover with explicit authorization.
-6. Keep GitHub Pages active until production validation and rollback window have completed. After cutover, review GitHub Pages publishing settings and repository visibility separately.
-
-Cloudflare WAF rules only protect traffic that is actually proxied through Cloudflare; this migration addresses F-013 only after live cutover and verification.
+## Contact form
+The form is served from `/contact/` and `/de/kontakt/` and sends requests to the separate `liffey-contact-form` Worker. It is not a Pages Function. Avoid replacing its production endpoint during migration.
