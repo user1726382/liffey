@@ -19,7 +19,9 @@
   button.disabled=true;say("Sending…","Wird gesendet…");
   try{
    const resp=await fetch(cfg.endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:data.get("name"),email:data.get("email"),topic:data.get("topic"),message:data.get("message"),website:data.get("website"),locale:cfg.locale,consent:data.get("consent")==="on",token})});
-   const result=await resp.json();
+   const result=await resp.json().catch(()=>({}));
+   if(resp.status===429){say("Too many attempts. Please wait a minute before trying again.","Zu viele Versuche. Bitte warten Sie eine Minute und versuchen Sie es erneut.");return}
+   if(resp.status===503){say("The form is temporarily unavailable. Please try again later or email info@liffey-consulting.com.","Das Formular ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut oder schreiben Sie an info@liffey-consulting.com.");return}
    if(!resp.ok||!result.ok)throw new Error("submission_failed");
    form.reset();say("Thank you. Your enquiry was submitted.","Vielen Dank. Ihre Anfrage wurde übermittelt.");
   }catch{say("Delivery failed. Please email info@liffey-consulting.com.","Versand fehlgeschlagen. Bitte schreiben Sie an info@liffey-consulting.com.")}
