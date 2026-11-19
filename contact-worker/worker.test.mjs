@@ -19,8 +19,13 @@ async function invoke(body=valid,config={}){
  const original=globalThis.fetch;
  globalThis.fetch=async (url)=>{
   const target=String(url);calls.push(target);
-  if(target.includes("/siteverify"))return new Response(JSON.stringify({success:config.turnstileSuccess!==false,hostname:"www.liffey-consulting.com",action:"contact"}),{status:200,headers:{"Content-Type":"application/json"}});
-  if(target==="https://api.resend.com/emails"){emails++;return new Response("{}",{status:emails===1?(config.inboxStatus||200):(config.ackStatus||200)});}
+  if(target.includes("/siteverify")){
+   if(config.turnstileThrow)throw new Error("Turnstile unavailable");
+   if(config.turnstileStatus)return new Response("{}",{status:config.turnstileStatus});
+   if(config.turnstileMalformed)return new Response("invalid-json",{status:200});
+   return new Response(JSON.stringify({success:config.turnstileSuccess!==false,hostname:"www.liffey-consulting.com",action:"contact"}),{status:200,headers:{"Content-Type":"application/json"}});
+  }
+  if(target==="https://api.resend.com/emails"){emails++;if((emails===1&&config.inboxThrow)||(emails===2&&config.ackThrow))throw new Error("Resend unavailable");return new Response("{}",{status:emails===1?(config.inboxStatus||200):(config.ackStatus||200)});}
   throw new Error("Unexpected outbound request: "+target);
  };
  try{
@@ -61,4 +66,29 @@ test("failed inbound delivery returns 502",async()=>{
 });
 test("failed acknowledgement does not misrepresent successful inbound delivery",async()=>{
  const r=await invoke(valid,{ackStatus:503});assert.equal(r.status,200);assert.equal(r.data.ok,true);assert.equal(r.emails,2);
+});
+
+test("unsupported media type is rejected before parsing or external calls",async()=>{
+ const r=await invoke(valid,{headers:{"Content-Type":"text/plain"}});
+ assert.equal(r.status,415);assert.equal(r.calls.length,0);
+});
+test("missing or oversized Turnstile token is rejected without external calls",async()=>{
+ for(const token of ["", "x".repeat(2049)]){
+  const r=await invoke({...valid,token});
+  assert.equal(r.status,400);assert.equal(r.calls.length,0);
+ }
+});
+test("Turnstile network, HTTP and malformed-response failures fail closed",async()=>{
+ for(const options of [{turnstileThrow:true},{turnstileStatus:503},{turnstileMalformed:true}]){
+  const r=await invoke(valid,options);
+  assert.equal(r.status,503);assert.equal(r.data.error,"verification_unavailable");assert.equal(r.emails,0);
+ }
+});
+test("Resend inbound network failure returns 502 without a false success",async()=>{
+ const r=await invoke(valid,{inboxThrow:true});
+ assert.equal(r.status,502);assert.equal(r.data.error,"delivery_failed");assert.equal(r.emails,1);
+});
+test("Resend acknowledgement network failure preserves successful inbound delivery",async()=>{
+ const r=await invoke(valid,{ackThrow:true});
+ assert.equal(r.status,200);assert.equal(r.data.ok,true);assert.equal(r.emails,2);
 });
