@@ -3,7 +3,7 @@
 
 ## Verified current architecture
 - Public site source: GitHub repository `user1726382/liffey`, branch `gh-pages`, GitHub Pages.
-- Cloudflare zone `liffey-consulting.com` is active; Cloudflare Pages project list is currently empty.
+- Cloudflare zone `liffey-consulting.com` is active. **A separate Git-connected staging Pages project** `liffey-consulting-staging` was created on 19 November 2026 with its own source branch `staging/cloudflare-pages-preview-20261119`. The staging project does not have a custom production domain.
 - DNS: four DNS-only root A records for GitHub Pages (`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`); DNS-only `www` CNAME points to `user1726382.github.io`.
 - Mail MX and SPF records are separate. **Do not modify email/DKIM/DMARC/MX/SPF records during website migration.**
 - The existing contact form uses `https://liffey-contact-form.leoedwalshe.workers.dev` and Turnstile. Its Worker currently accepts only `https://www.liffey-consulting.com` and `https://liffey-consulting.com` origins; preview domains will not be accepted.
@@ -18,10 +18,10 @@
 - The baseline CSP deliberately enforces only `base-uri`, `object-src`, `frame-ancestors` and `form-action`. Do not add a restrictive `script-src` or `connect-src` without testing inline scripts, Turnstile and the contact Worker.
 - Re-run the build test for every site release; verify no private paths or sensitive JSON enter `dist`.
 
-## Staging gate — requires explicit authorization
-1. Approve connecting the **specific GitHub repository** to a new Cloudflare Pages project. Limit the Cloudflare GitHub app's repository access to this repo where possible.
-2. Choose the `gh-pages` production branch in Pages settings; **disable automatic production builds** until a controlled release is approved. Configure preview branch controls deliberately. Be aware that initial Git integration may create a Pages deployment; do not do this without approval.
-3. Run the exact build command and output directory above; confirm the `*.pages.dev` preview renders, with no internal documents publicly accessible.
+## Staging gate — authorization received for a separate public Pages preview
+1. **Completed:** User authorized a public staging preview connected to the specific GitHub repository; Cloudflare accepted project `liffey-consulting-staging`.
+2. **Completed for staging:** The Pages project's deployment branch is `staging/cloudflare-pages-preview-20261119`, not `gh-pages`; other preview branches are disabled. Its build sets `LIFFEY_PAGES_STAGING=1`, which enforces `noindex`, disallows robots and disables contact submissions. The future **live production** project, if separately approved, should use `gh-pages` after the public-only build is merged and validated.
+3. **CI passed:** The staging branch runs `LIFFEY_PAGES_STAGING=1 node scripts/build-cloudflare-pages.mjs && LIFFEY_PAGES_STAGING=1 node scripts/test-cloudflare-pages-build.mjs`, output `dist`. Cloudflare build/deployment and public HTTP verification must be recorded separately before declaring staging ready.
 4. Check HTML, mobile layout, images, navigation, canonical URLs, 404, robots, sitemap, `/.well-known/security.txt`, and response headers.
 5. Test form on staging only after creating a **separate staging Worker/Turnstile setup** with an allowed preview hostname and non-production email routing. Do not loosen production Worker origin or Turnstile hostname checks just to make preview work.
 6. Check Cloudflare Pages preview access control: preview URLs are public unless specifically protected. Never expose candidate data, internal docs or sensitive information there.
