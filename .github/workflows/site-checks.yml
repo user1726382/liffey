@@ -28,6 +28,9 @@ jobs:
           print(f'Parsed {len(files)} HTML files')
           PY
           find . -type f -name '*.js' -not -path './.git/*' -print0 | xargs -0 -r -n1 node --check
+      - name: Verify internal HTML and asset references
+        shell: bash
+        run: python3 .github/scripts/check-site-links.py
       - name: Run contact Worker regression tests when available
         shell: bash
         run: |
