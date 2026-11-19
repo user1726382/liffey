@@ -1,0 +1,66 @@
+name: Static site checks
+on:
+  pull_request:
+    branches: [gh-pages]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Validate HTML and JS syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Parser(HTMLParser): pass
+          files=list(Path('.').rglob('*.html'))
+          assert files, 'No HTML files found'
+          for p in files:
+              Parser().feed(p.read_text(encoding='utf-8'))
+          print(f'Parsed {len(files)} HTML files')
+          PY
+          find . -type f -name '*.js' -not -path './.git/*' -print0 | xargs -0 -r -n1 node --check
+      - name: Verify internal HTML and asset references
+        shell: bash
+        run: python3 .github/scripts/check-site-links.py
+      - name: Run contact Worker regression tests when available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -f contact-worker/worker.test.mjs || test -f contact-worker/observability.test.mjs; then
+            for suite in contact-worker/*.test.mjs; do
+              node --test "$suite"
+            done
+          else
+            echo "Worker tests not yet merged; tracked in F-008 and F-011."
+          fi
+      - name: Verify public-only Pages build when available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -f scripts/build-cloudflare-pages.mjs && test -f scripts/test-cloudflare-pages-build.mjs; then
+            node scripts/build-cloudflare-pages.mjs
+            node scripts/test-cloudflare-pages-build.mjs
+          else
+            echo "Pages migration build not yet merged; tracked in F-013."
+          fi
+      - name: Detect obvious placeholder secrets and conflict markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE '^(<<<<<<< |=======|>>>>>>> )' -- ':!*.md'; then echo 'Merge conflict marker detected'; exit 1; fi
+          if git grep -nEi '(AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)'; then echo 'Potential credential detected'; exit 1; fi
+          if git ls-files | grep -Ei '(^|/)(\.env($|\.)|id_rsa$|id_ed25519$)|\.(p12|pfx|pem|key)$'; then
+            echo 'Potential secret file tracked in Git'; exit 1
+          fi
+          git diff --check
+          test -f legal/en/privacy.html && test -f legal/de/datenschutz.html
+          test -f legal/en/imprint.html && test -f legal/de/impressum.html
