@@ -1,0 +1,22 @@
+name: Cloudflare Pages build security check
+on:
+  pull_request:
+    branches: [gh-pages]
+    paths:
+      - "scripts/build-cloudflare-pages.mjs"
+      - "scripts/test-cloudflare-pages-build.mjs"
+      - ".github/workflows/pages-build-check.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - run: |
+          node scripts/build-cloudflare-pages.mjs
+          node scripts/test-cloudflare-pages-build.mjs
