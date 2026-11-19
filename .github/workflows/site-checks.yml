@@ -32,10 +32,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if test -f contact-worker/worker.test.mjs; then
-            node --test contact-worker/worker.test.mjs
+          if test -f contact-worker/worker.test.mjs || test -f contact-worker/observability.test.mjs; then
+            for suite in contact-worker/*.test.mjs; do
+              node --test "$suite"
+            done
           else
-            echo "Worker tests not yet merged; tracked in F-008."
+            echo "Worker tests not yet merged; tracked in F-008 and F-011."
           fi
       - name: Verify public-only Pages build when available
         shell: bash
