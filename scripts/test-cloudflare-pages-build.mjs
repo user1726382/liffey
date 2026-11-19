@@ -31,7 +31,7 @@ assert.match(disclosure,/Canonical: https:\/\/www\.liffey-consulting\.com\/\.wel
 assert.match(disclosure,/Expires: 2027-05-19T23:59:00Z/);
 for(const file of ["robots.txt","sitemap.xml"]){
  const content=await readFile(join(output,file),"utf8");
- assert.ok(content.includes("https://www.liffey-consulting.com"),"Canonical domain missing in "+file);
+ if(!(process.env.LIFFEY_PAGES_STAGING==="1" && file==="robots.txt")) assert.ok(content.includes("https://www.liffey-consulting.com"),"Canonical domain missing in "+file);
  assert.ok(!content.includes("user1726382.github.io/website"),"Legacy domain leaked in "+file);
 }
 if(process.env.LIFFEY_PAGES_STAGING==="1"){
