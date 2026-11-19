@@ -55,4 +55,25 @@ for(const name of ["robots.txt","sitemap.xml"]){
  await writeFile(file,before.replaceAll(oldBase,newBase));
 }
 
+// Staging-only protection: public preview must not be indexed or send contact requests.
+if(process.env.LIFFEY_PAGES_STAGING==="1"){
+ const headersPath=join(output,"_headers");
+ await writeFile(headersPath,(await readFile(headersPath,"utf8"))+"  X-Robots-Tag: noindex, nofollow\n");
+ await writeFile(join(output,"robots.txt"),"User-agent: *\nDisallow: /\n");
+ for(const [page,locale] of [["contact/index.html","en"],["de/kontakt/index.html","de"]]){
+  const file=join(output,page);
+  let html=await readFile(file,"utf8");
+  if(!html.includes('<form id="liffey-enquiry"'))throw new Error("Staging form missing: "+page);
+  if(!html.includes("https://liffey-contact-form.leoedwalshe.workers.dev"))throw new Error("Staging Worker URL not found: "+page);
+  html=html.replace('<form id="liffey-enquiry"','<form id="liffey-enquiry" inert aria-disabled="true"');
+  html=html.replace(/<script>window\.LIFFEY_CONTACT_CONFIG=\{[^<]*\};<\/script>/,
+   '<script>window.LIFFEY_CONTACT_CONFIG={endpoint:"",siteKey:"",locale:"'+locale+'"};</script>');
+  html=html.replace('<h2>'+(locale==="de"?"Kontaktformular":"Contact form")+'</h2>',
+   '<h2>'+(locale==="de"?"Kontaktformular":"Contact form")+'</h2><p role="status"><strong>'+
+   (locale==="de"?"Vorschau: Dieses Formular ist deaktiviert.":"Staging preview: this form is disabled.")+
+   '</strong></p>');
+  await writeFile(file,html);
+ }
+}
+
 console.log("Cloudflare Pages build: copied "+count+" public files into "+relative(root,output));
