@@ -5,7 +5,7 @@ import { extname, join, relative, dirname } from "node:path";
 
 const root=process.cwd(), output=join(root,"dist");
 const publicDirs=["about","assets","blog","consulting","contact","de","employers","insights","legal","news","roles","salary-guide","working-in-ireland"];
-const publicRootFiles=["index.html","404.html","robots.txt","sitemap.xml"];
+const publicRootFiles=["index.html","404.html","robots.txt","sitemap.xml","favicon.png"];
 const publicExt=new Set([".html",".css",".js",".json",".svg",".png",".jpg",".jpeg",".webp",".gif",".avif",".ico",".woff",".woff2",".txt",".xml"]);
 let count=0;
 async function copyPublicFile(rel){
