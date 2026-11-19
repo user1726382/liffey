@@ -39,5 +39,5 @@ assert.deepEqual([...favicon.subarray(0,8)],[137,80,78,71,13,10,26,10],"favicon.
 assert.equal(favicon.readUInt32BE(16),96,"favicon.png must be 96px wide");
 assert.equal(favicon.readUInt32BE(20),96,"favicon.png must be 96px high");
 const homepage=await readFile(join(output,"index.html"),"utf8");
-assert.match(homepage,/<link rel="icon" type="image\\/png" sizes="96x96" href="\\/favicon\\.png">/);
+assert.ok(homepage.includes('<link rel="icon" type="image/png" sizes="96x96" href="/favicon.png">'),"Homepage must advertise favicon.png");
 console.log("Validated "+count+" public output files, security headers, disclosure metadata and canonical SEO URLs; internal repository files excluded.");
