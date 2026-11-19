@@ -1,0 +1,36 @@
+name: IT Website Health (read-only)
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: it-website-health
+  cancel-in-progress: false
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check HTTPS homepage
+        id: check
+        env:
+          TARGET_URL: https://www.liffey-consulting.com/
+        run: |
+          set -euo pipefail
+          code=$(curl --silent --show-error --location --max-time 20 --output /dev/null --write-out '%{http_code}' "$TARGET_URL") || code="000"
+          echo "HTTP status: $code"
+          if [[ "$code" != "200" ]]; then
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+      - name: Create incident issue on failure
+        if: failure() && steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create --title "[IT][P2] Website HTTPS health check failed" --body "Automated read-only health check failed. Verify independently before declaring an outage. Evidence: $RUN_URL. No remediation has been performed." || true
