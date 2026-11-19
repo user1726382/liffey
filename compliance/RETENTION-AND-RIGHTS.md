@@ -2,7 +2,7 @@
 **Policy decision:** 19 November 2026. The owner authorized German-market standard retention targets for Liffey. **Status: APPROVED AS POLICY TARGETS; NOT YET TECHNICALLY IMPLEMENTED OR VERIFIED.** This is not evidence that Microsoft 365, Cloudflare, Resend or backups currently delete data on these dates.
 
 ## 1. Scope and rules
-Controller: Liffey GbR (complete business street address still to be verified). Applies to personal data under Liffey's control in Microsoft 365 mail/OneDrive, contact forms, Cloudflare Worker logs, Resend, recruitment records, and any future CRM/ATS. Different providers may have their own retention terms, to be recorded separately.
+Controller: Liffey GbR, Gustav-Adolf-Straße 13, 63069 Offenbach am Main, Germany (business address confirmed by owner on 19 November 2026). Applies to personal data under Liffey's control in Microsoft 365 mail/OneDrive, contact forms, Cloudflare Worker logs, Resend, recruitment records, and any future CRM/ATS. Different providers may have their own retention terms, to be recorded separately.
 
 - GDPR Art. 5(1)(e): keep data only as long as needed for its purpose. Art. 13(2)(a): disclose the period or its criteria. Erase earlier when the purpose ends and no other legal basis requires retention.
 - Distinguish operational correspondence from legally required commercial correspondence; **do not** keep every casual enquiry for six years merely because it is an email.
