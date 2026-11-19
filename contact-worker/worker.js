@@ -3,7 +3,12 @@ export default {
   const origin = request.headers.get("Origin") || "";
   const allowed = ["https://www.liffey-consulting.com","https://liffey-consulting.com"];
   const headers = {"Access-Control-Allow-Origin": allowed.includes(origin) ? origin : allowed[0], "Vary":"Origin","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
-  const reply=(status,body)=>new Response(JSON.stringify(body),{status,headers});
+  const reply=(status,body)=>{
+   // Emit only controlled error categories, never contact data, tokens or IPs.
+   if(status===403 || status===429 || status>=500)
+    console.warn(JSON.stringify({event:"contact_form_failure",status,code:String(body.error||"unknown")}));
+   return new Response(JSON.stringify(body),{status,headers});
+  };
   if(request.method==="OPTIONS") return allowed.includes(origin)?new Response(null,{status:204,headers:{...headers,"Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type"}}):reply(403,{error:"origin"});
   if(request.method!=="POST") return reply(405,{error:"method"});
   if(!allowed.includes(origin)) return reply(403,{error:"origin"});
