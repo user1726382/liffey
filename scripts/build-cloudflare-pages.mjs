@@ -57,6 +57,10 @@ for(const name of ["robots.txt","sitemap.xml"]){
 
 // Staging-only protection: public preview must not be indexed or send contact requests.
 if(process.env.LIFFEY_PAGES_STAGING==="1"){
+ const homepagePath=join(output,"index.html");
+ const homepage=await readFile(homepagePath,"utf8");
+ if(!homepage.includes('<meta name="robots" content="index,follow">'))throw new Error("Staging homepage robots marker missing");
+ await writeFile(homepagePath,homepage.replace('<meta name="robots" content="index,follow">','<meta name="robots" content="noindex,nofollow">'));
  const headersPath=join(output,"_headers");
  await writeFile(headersPath,(await readFile(headersPath,"utf8"))+"  X-Robots-Tag: noindex, nofollow\n");
  await writeFile(join(output,"robots.txt"),"User-agent: *\nDisallow: /\n");
