@@ -10,7 +10,25 @@ export default {
   if(!env.FORM_ENABLED || env.FORM_ENABLED!=="true") return reply(503,{error:"not_configured"});
   if(!env.TURNSTILE_SECRET || !env.RESEND_API_KEY || !env.FROM_EMAIL) return reply(503,{error:"not_configured"});
   if(Number(request.headers.get("content-length")||0)>12000) return reply(413,{error:"too_large"});
-  let data;try{data=await request.json()}catch{return reply(400,{error:"invalid_json"})}
+  // Bound the actual request body, not only the optional Content-Length header.
+  let data;
+  try {
+   if(!request.body) return reply(400,{error:"invalid_json"});
+   const reader=request.body.getReader(),chunks=[];
+   let total=0;
+   while(true){
+    const {done,value}=await reader.read();
+    if(done)break;
+    total+=value.byteLength;
+    if(total>12000){await reader.cancel();return reply(413,{error:"too_large"});}
+    chunks.push(value);
+   }
+   const raw=new Uint8Array(total);
+   let offset=0;
+   for(const chunk of chunks){raw.set(chunk,offset);offset+=chunk.byteLength;}
+   data=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(raw));
+  }catch{return reply(400,{error:"invalid_json"});}
+  if(!data || typeof data!=="object" || Array.isArray(data)) return reply(400,{error:"invalid_fields"});
   const name=String(data.name||"").trim(), email=String(data.email||"").trim(), message=String(data.message||"").trim(), topic=String(data.topic||""), locale=data.locale==="de"?"de":"en";
   const topics={general:"info@liffey-consulting.com",recruitment:"recruitment@liffey-consulting.com",career:"recruitment@liffey-consulting.com",consulting:"consulting@liffey-consulting.com",marketing:"consulting@liffey-consulting.com",privacy:"privacy@liffey-consulting.com",legal:"legal@liffey-consulting.com"};
   if(data.website) return reply(200,{ok:true});
