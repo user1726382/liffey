@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
       - name: Validate HTML and JS syntax
@@ -28,6 +28,15 @@ jobs:
           print(f'Parsed {len(files)} HTML files')
           PY
           find . -type f -name '*.js' -not -path './.git/*' -print0 | xargs -0 -r -n1 node --check
+      - name: Run contact Worker regression tests when available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -f contact-worker/worker.test.mjs; then
+            node --test contact-worker/worker.test.mjs
+          else
+            echo "Worker tests not yet merged; tracked in F-008."
+          fi
       - name: Detect obvious placeholder secrets and conflict markers
         shell: bash
         run: |
